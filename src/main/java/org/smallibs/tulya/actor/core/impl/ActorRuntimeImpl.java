@@ -13,6 +13,11 @@ public class ActorRuntimeImpl implements ActorRuntime {
     }
 
     @Override
+    public void close() {
+        executor.shutdownNow();
+    }
+
+    @Override
     public void perform(Runnable runnable) {
         this.executor.execute(runnable);
     }

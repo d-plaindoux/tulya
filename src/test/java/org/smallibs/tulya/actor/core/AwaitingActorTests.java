@@ -16,33 +16,35 @@ class AwaitingActorTests {
     @Test
     void shouldHandleAwaitingActor() throws Throwable {
         // Given
-        var coordinator = ActorCoordinator.Companion.build();
-        var sender = coordinator.register(address("sender"), sender()).orElseThrow();
-        var receiver = coordinator.register(address("receiver"), receiver(Try.success(Unit.unit))).orElseThrow();
+        try(var coordinator = ActorCoordinator.Companion.build()) {
+            var sender = coordinator.register(address("sender"), sender()).orElseThrow();
+            var receiver = coordinator.register(address("receiver"), receiver(Try.success(Unit.unit))).orElseThrow();
 
-        // When
-        var promise = new SolvablePromise<Unit>();
-        sender.tell(new Request(promise, Duration.ofMillis(1000), receiver));
+            // When
+            var promise = new SolvablePromise<Unit>();
+            sender.tell(new Request(promise, Duration.ofMillis(1000), receiver));
 
-        // Then
-        Assertions.assertEquals(Unit.unit, promise.await(Duration.ofMillis(1200)));
+            // Then
+            Assertions.assertEquals(Unit.unit, promise.await(Duration.ofMillis(1200)));
+        }
     }
 
     @Test
     void shouldHandleConcurrentAwaitingActor() throws Throwable {
         // Given
-        var coordinator = ActorCoordinator.Companion.build();
-        var sender = coordinator.register(address("sender"), sender()).orElseThrow();
-        var receiver = coordinator.register(address("receiver"), receiver(Try.success(Unit.unit))).orElseThrow();
+        try(var coordinator = ActorCoordinator.Companion.build()) {
+            var sender = coordinator.register(address("sender"), sender()).orElseThrow();
+            var receiver = coordinator.register(address("receiver"), receiver(Try.success(Unit.unit))).orElseThrow();
 
-        sender.tell(new Request(new SolvablePromise<>(), Duration.ofMillis(1000), receiver));
+            sender.tell(new Request(new SolvablePromise<>(), Duration.ofMillis(1000), receiver));
 
-        // When
-        var promise = new SolvablePromise<Unit>();
-        sender.tell(new Request(promise, Duration.ofMillis(2000), receiver));
+            // When
+            var promise = new SolvablePromise<Unit>();
+            sender.tell(new Request(promise, Duration.ofMillis(2000), receiver));
 
-        // Then
-        Assertions.assertEquals(Unit.unit, promise.await(Duration.ofMillis(2200)));
+            // Then
+            Assertions.assertEquals(Unit.unit, promise.await(Duration.ofMillis(2200)));
+        }
     }
 
     // Private section
@@ -57,9 +59,8 @@ class AwaitingActorTests {
 
                     @Override
                     public void tell(Request message) {
-                        var response = self().<Unit>reponseHandler();
-                        message.receiver.tell(new Ask(message.duration, response.solvable()));
-                        message.response.solve(Try.handle(() -> response.await()));
+                        var promise = message.receiver.<Unit>tell(solvable -> new Ask(message.duration, solvable));
+                        message.response.solve(Try.handle(() -> promise.await()));
                     }
                 };
     }

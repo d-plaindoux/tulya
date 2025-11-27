@@ -1,5 +1,6 @@
 package org.smallibs.tulya.actor.core;
 
+import org.smallibs.tulya.async.Promise;
 import org.smallibs.tulya.standard.Try;
 
 import java.time.Duration;
@@ -10,9 +11,20 @@ public interface ActorReference<Protocol> {
     ActorAddress address();
 
     @SuppressWarnings("TypeParameterHidesVisibleType")
-    <Protocol> Try<ActorReference<Protocol>> create(String name, BehaviorBuilder<Protocol> actor);
+    <Protocol> Try<ActorReference<Protocol>> tryCreate(String name, BehaviorBuilder<Protocol> actor);
+
+    @SuppressWarnings("TypeParameterHidesVisibleType")
+    default <Protocol> ActorReference<Protocol> create(String name, BehaviorBuilder<Protocol> actor) throws Throwable {
+        return tryCreate(name, actor).orElseThrow();
+    }
 
     boolean tell(Protocol message);
+
+    default <R> Promise<R> tell(BehaviorCall<Protocol, R> message) {
+        var response = this.<R>reponseHandler();
+        tell(message.apply(response.solvable()));
+        return response;
+    }
 
     void dispose();
 

@@ -8,6 +8,8 @@ import org.smallibs.tulya.standard.Try;
 import java.util.Arrays;
 import java.util.Random;
 
+import static org.smallibs.tulya.actor.core.ActorAddress.Companion.address;
+
 class PingPongActorsIntegrationTest {
 
     @Test
@@ -15,8 +17,8 @@ class PingPongActorsIntegrationTest {
         // Given
         var random = new Random();
         var coordinator = ActorCoordinator.Companion.build();
-        var alice = coordinator.register(ActorAddress.Companion.address("Alice"), PingPong.create(random)).orElseThrow();
-        var bob = coordinator.register(ActorAddress.Companion.address("Bob"), PingPong.create(random)).orElseThrow();
+        var alice = coordinator.register(address("Alice"), PingPong.create(random)).orElseThrow();
+        var bob = coordinator.register(address("Bob"), PingPong.create(random)).orElseThrow();
 
         // When
         var result = new SolvablePromise<String>();

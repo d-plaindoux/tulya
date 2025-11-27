@@ -3,12 +3,16 @@ package org.smallibs.tulya.actor.core;
 import org.smallibs.tulya.actor.core.impl.ActorCoordinatorImpl;
 import org.smallibs.tulya.standard.Try;
 
+import java.io.Closeable;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public interface ActorCoordinator {
+public interface ActorCoordinator extends Closeable {
 
     <Protocol> Try<ActorReference<Protocol>> register(ActorAddress address, BehaviorBuilder<Protocol> actor);
+
+    <Protocol> Optional<ActorReference<Protocol>> retrieve(ActorAddress address);
 
     void unregister(ActorAddress address);
 

@@ -4,6 +4,7 @@ import org.smallibs.tulya.lang.SupplierWithError;
 import org.smallibs.tulya.standard.Try;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -35,18 +36,18 @@ public interface Promise<T> {
 
     default Promise<T> onSuccess(Consumer<? super T> fn) {
         return onComplete(t -> {
-            switch (t) {
-                case Try.Success<T> v -> fn.accept(v.value());
-                default -> { /* Nothing */ }
+            /* Nothing */
+            if (Objects.requireNonNull(t) instanceof Try.Success<T>(T value)) {
+                fn.accept(value);
             }
         });
     }
 
     default Promise<T> onFailure(Consumer<Throwable> fn) {
         return onComplete(t -> {
-            switch (t) {
-                case Try.Failure<T> v -> fn.accept(v.throwable());
-                default -> { /* Nothing */ }
+            /* Nothing */
+            if (Objects.requireNonNull(t) instanceof Try.Failure<T>(Throwable throwable)) {
+                fn.accept(throwable);
             }
         });
     }

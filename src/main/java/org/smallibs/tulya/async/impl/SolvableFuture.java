@@ -34,14 +34,14 @@ public class SolvableFuture<R> implements Solvable<R>, Future<R> {
 
     @Override
     public boolean solve(Try<R> value) {
-        return this.solve(new Status.Done<>(value));
+        return solve(new Status.Done<>(value));
     }
 
     // Runnable section
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        return this.solve(new Status.Cancelled<>());
+        return solve(new Status.Cancelled<>());
     }
 
     @Override
@@ -56,29 +56,29 @@ public class SolvableFuture<R> implements Solvable<R>, Future<R> {
 
     @Override
     public R get() throws InterruptedException, ExecutionException {
-        if (!this.isDone()) {
+        if (!isDone()) {
             barrier.await();
         }
 
-        return this.unsafeGet(); // Interrupted, cancelled or done
+        return unsafeGet(); // Interrupted, cancelled or done
     }
 
     @Override
     public R get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        if (!this.isDone()) {
+        if (!isDone()) {
             if (!barrier.await(timeout, unit)) {
                 throw new TimeoutException();
             }
         }
 
-        return this.unsafeGet(); // Interrupted, Canceled or Done
+        return unsafeGet(); // Interrupted, Canceled or Done
     }
 
     // Package protected section
 
     boolean onWaiting(Runnable onWaiting) {
         synchronized (this) {
-            if (this.status.isWaiting()) {
+            if (status.isWaiting()) {
                 onWaiting.run();
                 return true;
             }
@@ -104,13 +104,10 @@ public class SolvableFuture<R> implements Solvable<R>, Future<R> {
 
     private boolean solve(Status<R> newStatus) {
         synchronized (this) {
-            if (this.isDone()) return false;
+            if (isDone()) return false;
 
-            this.status = newStatus;
-
-            if (barrier != null) {
-                barrier.countDown();
-            }
+            status = newStatus;
+            barrier.countDown();
         }
 
         onSolved.run();

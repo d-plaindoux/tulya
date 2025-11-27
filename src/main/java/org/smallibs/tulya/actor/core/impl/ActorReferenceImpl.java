@@ -24,7 +24,7 @@ public class ActorReferenceImpl<Protocol> implements ActorReference<Protocol> {
 
     @Override
 
-    public <AnotherProtocol> Try<ActorReference<AnotherProtocol>> create(String name, BehaviorBuilder<AnotherProtocol> actor) {
+    public <AnotherProtocol> Try<ActorReference<AnotherProtocol>> tryCreate(String name, BehaviorBuilder<AnotherProtocol> actor) {
         return coordinator.register(address.child(name), actor);
     }
 
@@ -40,7 +40,7 @@ public class ActorReferenceImpl<Protocol> implements ActorReference<Protocol> {
 
     @Override
     public <T> ResponseHandler<T> reponseHandler() {
-        return coordinator.responseHandler(address());
+        return coordinator.responseHandler();
     }
 
     @Override

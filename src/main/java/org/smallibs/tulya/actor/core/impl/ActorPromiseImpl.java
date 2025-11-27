@@ -115,7 +115,7 @@ public class ActorPromiseImpl<T> implements Promise<T> {
 
             this.promise.onComplete(e -> actor.tell(new Extended.Deferred<>(() -> fn.accept(e))));
         } else {
-            this.promise.onComplete(fn::accept);
+            this.promise.onComplete(fn);
         }
 
         return this;

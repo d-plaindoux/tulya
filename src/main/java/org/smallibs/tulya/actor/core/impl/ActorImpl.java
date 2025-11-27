@@ -11,7 +11,6 @@ import org.smallibs.tulya.standard.Try;
 import org.smallibs.tulya.standard.Unit;
 
 import java.text.MessageFormat;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,12 +43,12 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
     // Section: Actor
 
     public boolean tell(Extended<Protocol> message) {
-        return this.tell(new Exclusive.Carried<>(message));
+        return tell(new Exclusive.Carried<>(message));
     }
 
     // Section: ActorExclusive
 
-    ActorAddress getAddress() {
+    ActorAddress address() {
         return address;
     }
 
@@ -67,9 +66,9 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
             );
         }
 
-        if (this.status.compareAndSet(Status.RUNNING, Status.WAITING)) {
-            this.runtimeContext.unregisterCurrent();
-            this.pump();
+        if (status.compareAndSet(Status.RUNNING, Status.WAITING)) {
+            runtimeContext.unregisterCurrent();
+            pump();
         } else {
             throw new IllegalStateException("Actor is not processing a message");
         }
@@ -77,7 +76,7 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
 
     void acquire() throws Throwable {
         var barrier = new SolvablePromise<Unit>();
-        this.tell(new Exclusive.Acquire<>(barrier));
+        tell(new Exclusive.Acquire<>(barrier));
         barrier.await();
     }
 
@@ -88,8 +87,8 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
     }
 
     private boolean tell(Exclusive<Extended<Protocol>> message) {
-        if (this.messages.offer(message)) {
-            this.pump();
+        if (messages.offer(message)) {
+            pump();
             return true;
         } else {
             return false;
@@ -97,8 +96,8 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
     }
 
     private void pump() {
-        if (this.status.compareAndSet(Status.WAITING, Status.RUNNING)) {
-            oldestMessage().ifPresentOrElse(this::perform, () -> status.set(Status.WAITING));
+        if (!messages.isEmpty() && status.compareAndSet(Status.WAITING, Status.RUNNING)) {
+            perform(oldestMessage());
         }
     }
 
@@ -131,8 +130,8 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
         }
     }
 
-    private Optional<Exclusive<Extended<Protocol>>> oldestMessage() {
-        return Optional.ofNullable(messages.poll());
+    private Exclusive<Extended<Protocol>> oldestMessage() {
+        return messages.poll();
     }
 
     private enum Status {WAITING, RUNNING}
