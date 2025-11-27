@@ -11,6 +11,7 @@ import org.smallibs.tulya.standard.Try;
 import org.smallibs.tulya.standard.Unit;
 
 import java.text.MessageFormat;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -97,7 +98,7 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
 
     private void pump() {
         if (!messages.isEmpty() && status.compareAndSet(Status.WAITING, Status.RUNNING)) {
-            perform(oldestMessage());
+            oldestMessage().ifPresentOrElse(this::perform, () -> status.set(Status.WAITING));
         }
     }
 
@@ -130,8 +131,8 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
         }
     }
 
-    private Exclusive<Extended<Protocol>> oldestMessage() {
-        return messages.poll();
+    private Optional<Exclusive<Extended<Protocol>>> oldestMessage() {
+        return Optional.ofNullable(messages.poll());
     }
 
     private enum Status {WAITING, RUNNING}

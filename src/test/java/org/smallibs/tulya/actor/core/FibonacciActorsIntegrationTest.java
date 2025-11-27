@@ -19,7 +19,7 @@ public class FibonacciActorsIntegrationTest {
             var fibonacci = coordinator.register(address("fibonacci"), DirectComputation::new).orElseThrow();
 
             // When
-            var result = fibonacci.tell(fibonacci(0, fibonacciLimit));
+            var result = fibonacci.tell(fibonacci(fibonacciLimit));
 
             // Then
             Assertions.assertEquals(4181, result.await());
@@ -33,7 +33,7 @@ public class FibonacciActorsIntegrationTest {
             var fibonacci = coordinator.register(address("fibonacci"), IndirectComputation::new).orElseThrow();
 
             // When
-            var result = fibonacci.tell(fibonacci(0, fibonacciLimit));
+            var result = fibonacci.tell(fibonacci(fibonacciLimit));
 
             // Then
             Assertions.assertEquals(4181, result.await());
@@ -45,13 +45,12 @@ public class FibonacciActorsIntegrationTest {
     record IndirectComputation(ActorReference<Fibonacci> self) implements Behavior<Fibonacci> {
         @Override
         public void tell(Fibonacci message) {
-            var stage = " ".repeat(message.depth);
             if (message.value < 2) {
                 message.response().success(message.value());
             } else {
-                self().tell(fibonacci(message.depth + 1, message.value() - 1))
+                self().tell(fibonacci(message.value() - 1))
                         .flatMap(i1 ->
-                                self().tell(fibonacci(message.depth + 1, message.value() - 2)).map(i2 -> i1 + i2)
+                                self().tell(fibonacci(message.value() - 2)).map(i2 -> i1 + i2)
                         )
                         .onComplete(message.response()::solve);
             }
@@ -61,13 +60,12 @@ public class FibonacciActorsIntegrationTest {
     record DirectComputation(ActorReference<Fibonacci> self) implements Behavior<Fibonacci> {
         @Override
         public void tell(Fibonacci message) {
-            var stage = " ".repeat(message.depth);
             if (message.value < 2) {
                 message.response().success(message.value());
             } else {
                 var result = Try.handle(() -> {
-                    var minus1 = self().tell(fibonacci(message.depth + 1, message.value() - 1));
-                    var minus2 = self().tell(fibonacci(message.depth + 1, message.value() - 2));
+                    var minus1 = self().tell(fibonacci(message.value() - 1));
+                    var minus2 = self().tell(fibonacci(message.value() - 2));
 
                     return minus1.await() + minus2.await();
                 });
@@ -77,10 +75,10 @@ public class FibonacciActorsIntegrationTest {
         }
     }
 
-    record Fibonacci(int depth, int value, Solvable<Integer> response) {
+    record Fibonacci(int value, Solvable<Integer> response) {
         final public static class Companion {
-            static BehaviorCall<Fibonacci, Integer> fibonacci(int depth, int value) {
-                return solvable -> new Fibonacci(depth, value, solvable);
+            static BehaviorCall<Fibonacci, Integer> fibonacci(int value) {
+                return solvable -> new Fibonacci(value, solvable);
             }
         }
     }
