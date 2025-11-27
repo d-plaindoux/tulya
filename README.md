@@ -61,7 +61,6 @@ In this example, the actor computes the Fibonacci number with a direct computati
 record DirectComputation(ActorReference<Fibonacci> self) implements Behavior<Fibonacci> {
     @Override
     public void ask(Fibonacci message) {
-
         if (message.value() < 2) {
             message.response().success(message.value());
         } else {
