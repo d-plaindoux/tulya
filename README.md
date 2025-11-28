@@ -10,11 +10,13 @@ Indirect and direct asynchronous programming style applied to Java and a minimal
 
 The `Promise`[1] concept in programming languages was introduced by **Daniel P. Friedman** and **David S. Wise** in 1976. In this paper, lazy evaluation is introduced for suspending cons.
 
-Quote: "in fact, because of the suspending cons, z is initially bound only to a "promise" of this result."
+> "in fact, because of the suspending cons, z is initially bound only to a "promise" of this result."
 
 Later, the `Future`[2] concept was introduced by **Henry Baker** and **Carl Hewitt** in 1977 as part of their work
 on the *Actor model* of concurrent programming at MIT. This concept was introduced in order to exhibit a new approach
 for function evaluation with a call-by-future introducing fine grain parallelism.
+
+> "This paper investigates some problems associated with an argument evaluation order that we call "future' order, which is different from both call-by-name and call-by-value. In call-by-future, each formal parameter of a function is bound to a separate process (called a "future") dedicated to the evaluation of the corresponding argument."
 
 - [1] [The impact of applicative programming on multiprocessing](https://www.bitsavers.org/pdf/ieee/Conference_on_Parallel_Processing/1976_International_Conference_on_Parallel_Processing.pdf) - Daniel P. Friedman, David S. Wise, pages 263-272.
 - [2] [The Incremental Garbage Collection of Processes](https://www.plover.com/misc/hbaker-archive/Futures.html) - Henry C. Baker, Jr. & Carl Hewitt.
