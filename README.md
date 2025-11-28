@@ -4,9 +4,53 @@
 
 Indirect and direct asynchronous programming style applied to Java and a minimal but effective actor system.
 
-## Futures / Promises
+## Futures / Promise
+
+### Historical facts
+
+The `Promise`[1] concept in programming languages was introduced by **Daniel P. Friedman** and **David S. Wise** in 1976. In this paper, lazy evaluation is introduced for suspending cons.
+
+Quote: "in fact, because of the suspending cons, z is initially bound only to a "promise" of this result."
+
+Later, the `Future`[2] concept was introduced by **Henry Baker** and **Carl Hewitt** in 1977 as part of their work
+on the *Actor model* of concurrent programming at MIT. This concept was introduced in order to exhibit a new approach
+for function evaluation with a call-by-future introducing fine grain parallelism.
+
+- [1] [The impact of applicative programming on multiprocessing](https://www.bitsavers.org/pdf/ieee/Conference_on_Parallel_Processing/1976_International_Conference_on_Parallel_Processing.pdf) - Daniel P. Friedman, David S. Wise, pages 263-272.
+- [2] [The Incremental Garbage Collection of Processes](https://www.plover.com/misc/hbaker-archive/Futures.html) - Henry C. Baker, Jr. & Carl Hewitt.
+
+### Java Future
+
+In Java, `Future<V>` is an interface that represents a task running asynchronously and that will produce a result of type `V` or an error indicated by an exception. A `Future` represents the result of an asynchronous calculation. Methods are provided to check whether the calculation is complete, to wait for it to finish, and to retrieve the result of the calculation. This approach allows for a direct programming style, but its major drawback is that it blocks the calculation while waiting for the result.
+
+### Introducing Promise in Java
+
+In the `Java Concurrent` library, a specific `Future` implementation called `CompletableFuture` provides both the direct style and an indirect style based on the continuation passing style i.e. CSP. In order to achieve a clear separation between the result receiver, i.e. `Future`, and the control, we decided to design `Promise` for this purpose.
+
+Then, a `Future` mainly provides direct style while a `Promise` provides Indirect style and a bridge for a direct style.
+
+#### Technical aspects
+
+```Java
+public interface Future<V> {
+    boolean cancel(boolean mayInterruptIfRunning);
+    boolean isCancelled();
+    boolean isDone();
+    V get() throws InterruptedException, ExecutionException;
+}
+```
+
+```Java
+public interface Promise<T> {
+    <R> Promise<R> map(Function<? super T, ? extends R> mapper);
+    <R> Promise<R> flatMap(Function<? super T, ? extends Promise<R>> flatMapper);
+    Promise<T> onComplete(Consumer<? super Try<T>> fn);
+}
+```
 
 ## Async / Await
+
+TODO
 
 ### Taste of Tulya Async / Await
 
@@ -36,6 +80,10 @@ public void shouldAwaitFor_1_000_000_Tasks() {
 ```
 
 ## Actor System
+
+### Asynchronous style considerations
+
+TODO
 
 ### Taste of Tulya Actors
 
