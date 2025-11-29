@@ -2,12 +2,10 @@ plugins {
     id("java")
 }
 
-group = "tulya"
+group = "tulya-core"
 version = "1.0-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {

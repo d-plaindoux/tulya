@@ -3,9 +3,10 @@ package org.smallibs.tulya.actor.core;
 import java.time.Duration;
 import java.util.Optional;
 
+@FunctionalInterface
 public interface ActorEventLogger {
 
-    void log(Optional<ActorAddress> address, ActorAddress destination, Event event);
+    void log(Optional<ActorAddress> source, ActorAddress destination, Event event);
 
     sealed interface Event {
         record StartAwait(Duration duration) implements Event {

@@ -232,6 +232,22 @@ void shouldComputeDirectFibonacci() throws Throwable {
 }
 ```
 
+#### Basic benchmarks
+
+> Configuration: Apple M2 Max, memory og 64GiB
+
+##### With Platform threads
+
+> Average throughput: 1979 requests per milliseconds 
+
+![platform-throughput.png](src/test/data/platform-throughput.png)
+
+##### With Virtual threads
+
+> Average throughput: 1662 requests per milliseconds
+
+![platform-throughput.png](src/test/data/platform-throughput.png)
+
 ## License
 
 ```

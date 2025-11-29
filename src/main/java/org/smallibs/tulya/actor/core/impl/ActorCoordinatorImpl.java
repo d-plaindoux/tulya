@@ -29,7 +29,9 @@ public class ActorCoordinatorImpl implements ActorCoordinator {
         this.runtime = runtime;
         this.runtimeContext = runtimeContext;
 
-        this.logger = new StdoutActorEventLoggerImpl();
+        this.logger = (source, destination, event) -> {
+            // Nothing by default
+        };
     }
 
     @Override

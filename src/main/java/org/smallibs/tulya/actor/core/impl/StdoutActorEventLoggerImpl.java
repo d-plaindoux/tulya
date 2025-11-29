@@ -9,8 +9,8 @@ import java.util.Optional;
 public class StdoutActorEventLoggerImpl implements ActorEventLogger {
 
     @Override
-    public void log(Optional<ActorAddress> address, ActorAddress destination, Event event) {
-        var nameSource = (address.map(ActorAddress::toString).orElse("") + " ".repeat(16)).substring(0, 16);
+    public void log(Optional<ActorAddress> source, ActorAddress destination, Event event) {
+        var nameSource = (source.map(ActorAddress::toString).orElse("") + " ".repeat(16)).substring(0, 16);
         var nameDestination = (destination + " ".repeat(16)).substring(0, 16);
         var threadId = (Thread.currentThread().threadId() + " ".repeat(8)).substring(0, 8);
         var date = (Instant.now().toString() + " ".repeat(19)).substring(0, 19);

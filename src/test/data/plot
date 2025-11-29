@@ -1,0 +1,16 @@
+set term png
+
+set dgrid3d 10, 100
+set hidden3d
+set xlabel "actors"
+set ylabel "requests"
+
+# --------------------------------
+
+set zlabel "r/ms"
+
+set output "platform-throughput.png"
+splot "platform" u 1:2:3 with lines
+
+set output "virtual-throughput.png"
+splot "virtual" u 1:2:3 with lines

@@ -4,19 +4,18 @@ import org.smallibs.tulya.actor.core.ActorCoordinator;
 import org.smallibs.tulya.actor.core.ActorReference;
 import org.smallibs.tulya.actor.core.Behavior;
 import org.smallibs.tulya.standard.Try;
-import org.smallibs.tulya.standard.Unit;
 
 import static org.smallibs.tulya.actor.core.ActorAddress.Companion.address;
 
-public record SystemBehavior(ActorReference<Unit> self) implements Behavior<Unit> {
+public record DeadLetter(ActorReference<Object> self) implements Behavior<Object> {
     @Override
-    public void ask(Unit message) {
-        // Do nothing for the moment
+    public void ask(Object message) {
+        // TODO
     }
 
     static class Companion {
-        static Try<ActorReference<Unit>> register(ActorCoordinator coordinator) {
-            return coordinator.register(address("system"), SystemBehavior::new);
+        static Try<ActorReference<Object>> register(ActorCoordinator coordinator) {
+            return coordinator.register(address("system").child("dead-letter"), DeadLetter::new);
         }
     }
 }
