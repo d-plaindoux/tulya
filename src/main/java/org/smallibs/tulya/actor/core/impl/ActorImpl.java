@@ -4,7 +4,6 @@ import org.smallibs.tulya.actor.core.Actor;
 import org.smallibs.tulya.actor.core.ActorAddress;
 import org.smallibs.tulya.actor.core.ActorEventLogger;
 import org.smallibs.tulya.actor.core.ActorRuntime;
-import org.smallibs.tulya.actor.core.ActorRuntimeContext;
 import org.smallibs.tulya.actor.core.Behavior;
 import org.smallibs.tulya.actor.core.Extended;
 import org.smallibs.tulya.async.Solvable;
@@ -22,17 +21,15 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
 
     private final ActorAddress address;
     private final ActorRuntime runtime;
-    private final ActorRuntimeContext runtimeContext;
     private final ActorEventLogger logger;
     private final Behavior<Protocol> behavior;
 
     private final AtomicReference<Status> status;
     private final Queue<Exclusive<Extended<Protocol>>> messages;
 
-    public ActorImpl(ActorAddress address, ActorRuntime runtime, ActorRuntimeContext runtimeContext, ActorEventLogger logger, Behavior<Protocol> behavior) {
+    public ActorImpl(ActorAddress address, ActorRuntime runtime, ActorEventLogger logger, Behavior<Protocol> behavior) {
         this.address = address;
         this.runtime = runtime;
-        this.runtimeContext = runtimeContext;
         this.logger = logger;
         this.behavior = behavior;
 
@@ -69,7 +66,7 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
 
         if (status.compareAndSet(Status.RUNNING, Status.WAITING)) {
             logger.log(activeActorAddress, address, new ActorEventLogger.Event.StartAwait(duration));
-            runtimeContext.unregisterCurrent();
+            runtime.context().unregisterCurrent();
             pump();
         } else {
             throw new IllegalStateException("Actor %s is not processing a message".formatted(addressOf(this)));
@@ -82,7 +79,7 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
             tell(new Exclusive.Acquire<>(duration.toString(), barrier));
             barrier.await();
         } finally {
-            runtimeContext.registerCurrent(this);
+            runtime.context().registerCurrent(this);
             logger.log(getActiveActorAddress(), address, new ActorEventLogger.Event.EndAwait(duration));
         }
 
@@ -91,7 +88,7 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
     // Private section
 
     private Optional<ActorAddress> getActiveActorAddress() {
-        return runtimeContext.getCurrentActor().map(ActorImpl::addressOf);
+        return runtime.context().getCurrentActor().map(ActorImpl::addressOf);
     }
 
     private static ActorAddress addressOf(ActorImpl<?> a) {
@@ -123,7 +120,7 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
             }
             case Exclusive.Carried(var extendedCarried) -> runtime.perform(() -> {
                 try {
-                    runtimeContext.registerCurrent(this);
+                    runtime.context().registerCurrent(this);
                     logger.log(getActiveActorAddress(), address, new ActorEventLogger.Event.Start<>(message));
                     switch (extendedCarried) {
                         case Extended.Activate() -> behavior.activate();
@@ -139,7 +136,7 @@ public class ActorImpl<Protocol> implements Actor<Protocol> {
                     }
                 } finally {
                     logger.log(getActiveActorAddress(), address, new ActorEventLogger.Event.End<>(message));
-                    runtimeContext.unregisterCurrent();
+                    runtime.context().unregisterCurrent();
                     status.set(Status.WAITING);
                     pump();
                 }

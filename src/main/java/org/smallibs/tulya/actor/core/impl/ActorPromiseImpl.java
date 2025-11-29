@@ -1,6 +1,6 @@
 package org.smallibs.tulya.actor.core.impl;
 
-import org.smallibs.tulya.actor.core.ActorRuntimeContext;
+import org.smallibs.tulya.actor.core.ActorRuntime;
 import org.smallibs.tulya.actor.core.Extended.Deferred;
 import org.smallibs.tulya.async.Promise;
 import org.smallibs.tulya.async.impl.SolvablePromise;
@@ -12,21 +12,21 @@ import java.util.function.Function;
 
 public class ActorPromiseImpl<T> implements Promise<T> {
 
-    private final ActorRuntimeContext runtime;
+    private final ActorRuntime runtime;
     private final SolvablePromise<T> promise;
 
-    public ActorPromiseImpl(ActorRuntimeContext runtime) {
+    public ActorPromiseImpl(ActorRuntime runtime) {
         this(runtime, new SolvablePromise<>());
     }
 
-    ActorPromiseImpl(ActorRuntimeContext runtime, SolvablePromise<T> promise) {
+    ActorPromiseImpl(ActorRuntime runtime, SolvablePromise<T> promise) {
         this.runtime = runtime;
         this.promise = promise;
     }
 
     @Override
     public T await() throws Throwable {
-        var mayBeActor = runtime.getCurrentActor();
+        var mayBeActor = runtime.context().getCurrentActor();
 
         if (mayBeActor.isPresent()) {
             var actor = mayBeActor.get();
@@ -44,7 +44,7 @@ public class ActorPromiseImpl<T> implements Promise<T> {
 
     @Override
     public T await(Duration duration) throws Throwable {
-        var mayBeActor = runtime.getCurrentActor();
+        var mayBeActor = runtime.context().getCurrentActor();
 
         if (mayBeActor.isPresent()) {
             var actor = mayBeActor.get();
@@ -70,7 +70,7 @@ public class ActorPromiseImpl<T> implements Promise<T> {
     public <R> Promise<R> map(Function<? super T, ? extends R> fn) {
         var response = new ActorPromiseImpl<R>(runtime);
 
-        runtime.getCurrentActor().ifPresentOrElse(
+        runtime.context().getCurrentActor().ifPresentOrElse(
                 actor -> this.promise
                         .onSuccess(e -> actor.tell(new Deferred<>(() -> response.promise.solve(Try.success(fn.apply(e))))))
                         .onFailure(e -> response.promise.solve(Try.failure(e))),
@@ -86,7 +86,7 @@ public class ActorPromiseImpl<T> implements Promise<T> {
     public <R> Promise<R> flatMap(Function<? super T, ? extends Promise<R>> fn) {
         var response = new ActorPromiseImpl<R>(runtime);
 
-        runtime.getCurrentActor().ifPresentOrElse(
+        runtime.context().getCurrentActor().ifPresentOrElse(
                 actor -> this.promise
                         .onSuccess(e -> actor.tell(new Deferred<>(() -> fn.apply(e).onComplete(response.promise::solve))))
                         .onFailure(e -> response.promise.solve(Try.failure(e))),
@@ -100,7 +100,7 @@ public class ActorPromiseImpl<T> implements Promise<T> {
 
     @Override
     public Promise<T> onComplete(Consumer<? super Try<T>> fn) {
-        runtime.getCurrentActor().ifPresentOrElse(
+        runtime.context().getCurrentActor().ifPresentOrElse(
                 actor -> this.promise.onComplete(e -> actor.tell(new Deferred<>(() -> fn.accept(e)))),
                 () -> this.promise.onComplete(fn)
         );

@@ -24,25 +24,22 @@ public interface ActorCoordinator extends Closeable {
         static ActorCoordinator build() {
             return build(
                     ActorUniverse.Companion.build(),
-                    ActorRuntime.Companion.build(Executors.newVirtualThreadPerTaskExecutor()),
-                    ActorRuntimeContext.Companion.build()
+                    ActorRuntime.Companion.build(ActorRuntimeContext.Companion.build(), Executors.newVirtualThreadPerTaskExecutor())
             );
         }
 
         static ActorCoordinator build(ExecutorService executor) {
             return build(
                     ActorUniverse.Companion.build(),
-                    ActorRuntime.Companion.build(executor),
-                    ActorRuntimeContext.Companion.build()
+                    ActorRuntime.Companion.build(ActorRuntimeContext.Companion.build(), executor)
             );
         }
 
         static ActorCoordinator build(
                 ActorUniverse universe,
-                ActorRuntime runtime,
-                ActorRuntimeContext runtimeContext
+                ActorRuntime runtime
         ) {
-            return new ActorCoordinatorImpl(universe, runtime, runtimeContext);
+            return new ActorCoordinatorImpl(universe, runtime);
         }
     }
 }
